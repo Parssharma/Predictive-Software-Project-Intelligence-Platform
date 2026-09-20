@@ -1,0 +1,183 @@
+// Predictive Software Project Intelligence Platform
+// Prisma Schema v1
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & Installations ────────────────────────────────────────
+
+model User {
+  id            String         @id @default(uuid())
+  githubId      Int            @unique
+  login         String
+  avatarUrl     String?
+  accessToken   String?
+  installations Installation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Installation {
+  id           String       @id @default(uuid())
+  githubId     Int          @unique
+  userId       String
+  user         User         @relation(fields: [userId], references: [id])
+  repositories Repository[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+// ─── Repository ───────────────────────────────────────────────────
+
+model Repository {
+  id                String            @id @default(uuid())
+  githubId          Int               @unique
+  owner             String
+  name              String
+  fullName          String            @unique
+  installationId    String
+  installation      Installation      @relation(fields: [installationId], references: [id])
+  milestones        Milestone[]
+  pullRequests      PullRequest[]
+  webhookDeliveries WebhookDelivery[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+// ─── Milestones & Issues ──────────────────────────────────────────
+
+model Milestone {
+  id              String     @id @default(uuid())
+  githubId        Int
+  repositoryId    String
+  repository      Repository @relation(fields: [repositoryId], references: [id])
+  number          Int
+  title           String
+  description     String?
+  state           String // "open" | "closed"
+  dueOn           DateTime?
+  closedAt        DateTime?
+  githubCreatedAt DateTime
+  githubUpdatedAt DateTime
+  issues          Issue[]
+  forecasts       Forecast[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([repositoryId, githubId])
+}
+
+model Issue {
+  id              String       @id @default(uuid())
+  githubId        Int
+  repositoryId    String
+  milestoneId     String?
+  milestone       Milestone?   @relation(fields: [milestoneId], references: [id])
+  number          Int
+  title           String
+  state           String // "open" | "closed"
+  stateReason     String? // "completed" | "not_planned" | "reopened" | null
+  labels          Json         @default("[]")
+  assignees       Json         @default("[]")
+  githubCreatedAt DateTime
+  githubUpdatedAt DateTime
+  closedAt        DateTime?
+  events          IssueEvent[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([repositoryId, githubId])
+}
+
+model IssueEvent {
+  id              String   @id @default(uuid())
+  githubId        BigInt   @unique
+  issueId         String
+  issue           Issue    @relation(fields: [issueId], references: [id])
+  type            String // "opened" | "closed" | "reopened" | "milestoned" | "demilestoned"
+  actor           String?
+  payload         Json?
+  githubCreatedAt DateTime
+  createdAt       DateTime @default(now())
+}
+
+// ─── Pull Requests & Reviews ──────────────────────────────────────
+
+model PullRequest {
+  id              String     @id @default(uuid())
+  githubId        Int
+  repositoryId    String
+  repository      Repository @relation(fields: [repositoryId], references: [id])
+  number          Int
+  title           String
+  state           String // "open" | "closed" | "merged"
+  mergedAt        DateTime?
+  closedAt        DateTime?
+  githubCreatedAt DateTime
+  githubUpdatedAt DateTime
+  reviews         PrReview[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([repositoryId, githubId])
+}
+
+model PrReview {
+  id            String      @id @default(uuid())
+  githubId      Int         @unique
+  pullRequestId String
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id])
+  state         String // "approved" | "changes_requested" | "commented"
+  author        String?
+  submittedAt   DateTime
+  createdAt     DateTime    @default(now())
+}
+
+// ─── Webhooks ─────────────────────────────────────────────────────
+
+model WebhookDelivery {
+  id           String     @id @default(uuid())
+  deliveryId   String     @unique
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id])
+  event        String
+  action       String
+  processedAt  DateTime?
+  createdAt    DateTime   @default(now())
+}
+
+// ─── Forecasts ────────────────────────────────────────────────────
+
+model Forecast {
+  id              String                @id @default(uuid())
+  milestoneId     String
+  milestone       Milestone             @relation(fields: [milestoneId], references: [id])
+  asOfDate        DateTime
+  p50             DateTime
+  p85             DateTime
+  p95             DateTime
+  probabilityMiss Float
+  confidenceLabel String // "low" | "medium" | "high"
+  inputsSnapshot  Json
+  explanations    ForecastExplanation[]
+  createdAt       DateTime              @default(now())
+
+  @@index([milestoneId, asOfDate])
+}
+
+model ForecastExplanation {
+  id         String   @id @default(uuid())
+  forecastId String
+  forecast   Forecast @relation(fields: [forecastId], references: [id])
+  factor     String
+  direction  String // "earlier" | "later" | "unchanged"
+  deltaDays  Float
+  narrative  String
+  createdAt  DateTime @default(now())
+}
