@@ -8,7 +8,7 @@
     "test": "pnpm -r run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:generate": "pnpm --filter @ppi/db run generate",
+    "db:generate": "pnpm --filter @ppi/db run generate && pnpm --filter @ppi/db run build",
     "db:migrate": "pnpm --filter @ppi/db run migrate",
     "db:push": "pnpm --filter @ppi/db run push"
   },
