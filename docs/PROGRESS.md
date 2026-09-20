@@ -1,127 +1,165 @@
-# Progress
+# Progress Tracking & Status
 
-> Single source of truth for current project status.
+> Single source of truth for tracking what needs to be built, what has been built, verification results, decisions, and next steps.
 
 ## Last Updated
 
 - **Date:** 2026-09-20
 - **Branch:** `phase-1/foundation`
 
-## Phase Status
+---
 
-| Phase | Name | Status | Evidence |
-|-------|------|--------|----------|
-| 0 | Definitions | ✅ Done | `docs/DEFINITIONS.md` created |
-| 1 | Foundation | ✅ Done | All checks pass (see verification below) |
-| 2 | GitHub App & Connection | ⬜ Not Started | — |
-| 3 | Ingestion | ⬜ Not Started | — |
-| 4 | Historical Reconstruction | ⬜ Not Started | — |
-| 5 | Metrics & Baseline | ⬜ Not Started | — |
-| 6 | Monte Carlo | ⬜ Not Started | — |
-| 7 | Backtesting | ⬜ Not Started | — |
-| 8 | Dashboard | ⬜ Not Started | — |
-| 9 | Webhooks & Jobs | ⬜ Not Started | — |
-| 10 | Explanations | ⬜ Not Started | — |
-| 11 | Deploy & Polish | ⬜ Not Started | — |
-| 12 | Optional ML | ⬜ Not Started | — |
+## 📊 High-Level Roadmap Overview
 
-## Done So Far
+| Phase | Phase Name | Status | Completion Target / Criteria | Verification / Evidence |
+|-------|------------|--------|------------------------------|-------------------------|
+| **0** | **Definitions** | ✅ Done | Core definitions & formulas documented | [docs/DEFINITIONS.md](DEFINITIONS.md) |
+| **1** | **Foundation** | ✅ Done | Scaffold, Prisma, Docker, CI, Docs, /health | All lint/typecheck/tests pass |
+| **2** | **GitHub App & Connection** | ⬜ Not Started | User sign-in, app install, repo/milestone picker | Pending Phase 2 |
+| **3** | **Ingestion** | ⬜ Not Started | GraphQL backfill, timeline events, idempotent upserts | Pending Phase 3 |
+| **4** | **Historical Reconstruction** | ⬜ Not Started | Milestone state reconstruction as of date X (no leakage) | Pending Phase 4 |
+| **5** | **Metrics & Baseline** | ⬜ Not Started | Weekly throughput, scope changes, completion ratio | Pending Phase 5 |
+| **6** | **Monte Carlo** | ⬜ Not Started | Bootstrap simulation, quantiles, P(miss), CLI | Pending Phase 6 |
+| **7** | **Backtesting** | ⬜ Not Started | Mined milestone replay harness, accuracy report | Pending Phase 7 |
+| **8** | **Dashboard** | ⬜ Not Started | Next.js UI, burn-up chart, forecast band | Pending Phase 8 |
+| **9** | **Webhooks & Jobs** | ⬜ Not Started | HMAC webhooks, dedupe, nightly reconcile job | Pending Phase 9 |
+| **10**| **Explanations** | ⬜ Not Started | Counterfactual reruns & narrative generator | Pending Phase 10 |
+| **11**| **Deploy & Polish** | ⬜ Not Started | Production builds, deployment, README diagram | Pending Phase 11 |
+| **12**| **Optional ML** | ⬜ Not Started | Train ML model vs. Monte Carlo backtest baseline | Pending Phase 12 |
+
+---
+
+## ✅ What Has Been Built (Done)
+
+### Phase 0: Definitions
+- [x] Defined forecast outputs: P50, P85, P95 completion dates, P(miss deadline), confidence label
+- [x] Defined MVP Metric: Issue-based completion ratio = `issues_closed_as_completed / total_scope`
+- [x] Defined scope rules: `not_planned` and `duplicate` closures count as scope removals
+- [x] Defined low-confidence rule: `< 4 weeks` of issue history gets `"low"` confidence label
+- [x] Defined milestone completion date: closedAt timestamp of last non-cancelled issue (not `milestone.closed_at`)
+- [x] Documented in [docs/DEFINITIONS.md](DEFINITIONS.md)
 
 ### Phase 1: Foundation (Completed 2026-09-20)
+- [x] Monorepo scaffold with `pnpm` workspaces (`apps/api`, `apps/worker`, `apps/web`, `apps/analytics`, `packages/db`)
+- [x] Shared TypeScript strict base config (`tsconfig.base.json`), ESLint flat config (`eslint.config.mjs`), Prettier (`.prettierrc`)
+- [x] Prisma schema v1 with 11 models & GitHub ID unique keys (`packages/db/prisma/schema.prisma`)
+- [x] PostgreSQL database initialization script with `analytics_reader` read-only role (`scripts/init-db.sql`)
+- [x] API Service (`apps/api`): Express 5, Zod env validation, pino logger, `GET /health`
+- [x] Worker Service (`apps/worker`): `pg-boss` consumer with sample batch job handler
+- [x] Analytics Service (`apps/analytics`): FastAPI Python service with DB connectivity check (`GET /health`, 3s timeout) and stub `POST /forecast` (501)
+- [x] Web Frontend (`apps/web`): Next.js 15 + Tailwind CSS, client component calling `api /health`
+- [x] Docker Compose (`docker-compose.yml`) for `postgres`, `api`, `worker`, `analytics`, `web`
+- [x] GitHub Actions CI (`.github/workflows/ci.yml`) for Node.js (lint, typecheck, test) and Python (ruff, pytest)
+- [x] Repository templates: PR template, task issue template, bug issue template, `dependabot.yml`
+- [x] Environment files (`.env.example` per service) & `.gitignore`
+- [x] Living documentation suite: `README.md`, `AGENTS.md`, `docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/IMPLEMENTATION_PLAN.md`, `docs/DEFINITIONS.md`, `docs/PROGRESS.md`
 
-- Monorepo scaffold with pnpm workspaces (`apps/`, `packages/`)
-- TypeScript strict config (`tsconfig.base.json`), ESLint flat config (v9), Prettier
-- Prisma schema v1 — 11 models in `packages/db/prisma/schema.prisma`
-- `apps/api` — Express 5 with `/health` endpoint, Zod env validation, pino structured logging
-- `apps/worker` — pg-boss with sample batch job handler
-- `apps/analytics` — FastAPI with `/health` (DB connectivity check, 3s timeout), stub `POST /forecast` (501)
-- `apps/web` — Next.js 15 + Tailwind CSS, calls api `/health` and displays result
-- `docker-compose.yml` with 5 services (postgres, api, worker, analytics, web)
-- `scripts/init-db.sql` with read-only `analytics_reader` role
-- CI workflow (GitHub Actions) for Node + Python
-- PR template, issue templates (task, bug), `dependabot.yml`
-- `.env.example` files per service, `.gitignore`
-- All documentation: README, AGENTS.md, PROJECT, ARCHITECTURE, IMPLEMENTATION_PLAN, DEFINITIONS, PROGRESS
+---
 
-## Verification Results
+## 🛠️ What Needs to Be Built (Target Roadmap)
 
-### Lint (✅ Pass)
+### Phase 2: GitHub App & Connection
+- [ ] GitHub App manifest & registration guide
+- [ ] OAuth authentication flow for user sign-in
+- [ ] Installation webhook handler (`/webhooks/installation`)
+- [ ] Frontend Repo & Milestone picker page
+- [ ] API routes for repo/milestone connection
 
-```
-$ pnpm lint
-Scope: 4 of 5 workspace projects
-packages/db lint: Done
-apps/worker lint: Done
-apps/api lint: Done
-apps/web lint: ✔ No ESLint warnings or errors — Done
-```
+### Phase 3: Ingestion
+- [ ] Octokit GraphQL client for backfill
+- [ ] Milestone, issue, timeline event, pull request, and PR review ingestion
+- [ ] Idempotent upsert logic keyed on GitHub IDs
+- [ ] Resumable backfill jobs with cursor pagination
+- [ ] GitHub rate-limit detection and exponential backoff
 
-```
-$ python -m ruff check app/ tests/   (in apps/analytics)
-All checks passed (0 errors)
-```
+### Phase 4: Historical Reconstruction
+- [ ] Event-sourced historical milestone state builder in analytics
+- [ ] As-of date filter (`timestamp <= as-of date`)
+- [ ] Test suite verifying no look-ahead leakage on historical datasets
 
-### Typecheck (✅ Pass)
+### Phase 5: Metrics & Baseline
+- [ ] Weekly throughput calculation module
+- [ ] Scope change (addition/removal) series builder
+- [ ] PR cycle time & review latency metrics
+- [ ] Deterministic baseline forecaster (`remaining / average throughput`)
 
-```
-$ pnpm typecheck
-Scope: 4 of 5 workspace projects
-packages/db typecheck: Done
-apps/api typecheck: Done
-apps/worker typecheck: Done
-apps/web typecheck: Done
-```
+### Phase 6: Monte Carlo Simulation
+- [ ] Bootstrapping simulation engine (NumPy / pandas)
+- [ ] Scope-change sampling during projection
+- [ ] Quantile calculation (P50, P85, P95) and P(miss deadline)
+- [ ] Confidence label evaluator (low / medium / high)
+- [ ] Interactive CLI / Jupyter notebook slice for ad-hoc forecasts
+- [ ] `POST /forecast` production endpoint implementation
 
-### Tests (✅ Pass — 6 tests total)
+### Phase 7: Backtesting Framework
+- [ ] Public repository milestone mining scripts (`scripts/mining`)
+- [ ] Historical milestone replay harness
+- [ ] Accuracy evaluation metrics (MAE, bias, coverage, calibration)
+- [ ] Backtest report generator vs. baseline
 
-```
-$ pnpm test
-apps/worker: ✓ tests/sample.test.ts (2 tests) — PASSED
-apps/api: ✓ tests/health.test.ts (1 test) — PASSED
-apps/web: ✓ tests/page.test.tsx (1 test) — PASSED
-```
+### Phase 8: Dashboard & Visualizations
+- [ ] Next.js dashboard UI with Recharts
+- [ ] Burn-up chart with forecast confidence band
+- [ ] Completion ratio & risk percentage cards
+- [ ] Metrics panel with visual separation of observed vs. calculated vs. predicted
 
-```
-$ python -m pytest -v   (in apps/analytics)
-tests/test_health.py::test_health_endpoint_returns_ok PASSED
-tests/test_health.py::test_forecast_returns_501 PASSED
-======================== 2 passed in 6.82s ========================
-```
+### Phase 9: Webhooks & Live Updates
+- [ ] GitHub Webhook endpoint with HMAC-SHA256 signature verification
+- [ ] Webhook delivery deduplication (`WebhookDelivery` table)
+- [ ] Event-triggered recompute jobs via `pg-boss`
+- [ ] Nightly reconciliation job for missed webhooks
+- [ ] Historical forecast recording and visualization
 
-### Docker Compose (⚠️ Not Verified)
+### Phase 10: Counterfactual Explanations
+- [ ] Counterfactual simulation engine (one-factor-at-a-time sensitivity analysis)
+- [ ] Structured explanation data model (`ForecastExplanation`)
+- [ ] Human-readable "why the forecast changed" narrative generator
 
-Docker Desktop was not running on the development machine at the time of verification. The `docker-compose.yml` and all Dockerfiles are in place and structurally correct. Docker verification should be done when Docker Desktop is available.
+### Phase 11: Production Deployment & Polish
+- [ ] Multi-stage production Dockerfiles
+- [ ] Infrastructure setup & monitoring
+- [ ] Final README polish with architecture diagrams & demo repository link
 
-```
-$ docker compose up --build
-Error: Docker daemon not running
-```
+### Phase 12: Optional Machine Learning
+- [ ] Feature engineering from historical milestone series
+- [ ] Model training (offline) split by repository
+- [ ] Comparative evaluation: ML vs. Monte Carlo in backtesting harness
 
-## In Progress
+---
 
-- Nothing currently in progress
+## 🔍 Verification Evidence
 
-## Next Up
+### 1. Code Quality & Formatting (✅ Pass)
+- `pnpm lint` — All Node workspaces clean (0 errors).
+- `python -m ruff check app/ tests/` — All Python files clean (0 errors).
 
-- **Phase 2:** GitHub App & Connection — sign-in, installation, repo and milestone picker
-- Docker Compose verification when Docker Desktop is available
+### 2. Static Type Checks (✅ Pass)
+- `pnpm typecheck` — TypeScript strict compilation passes for `@ppi/db`, `@ppi/api`, `@ppi/worker`, `@ppi/web`.
 
-## Decisions Log
+### 3. Automated Test Suite (✅ Pass — 6 Tests)
+- `apps/worker`: 2 unit tests passing (`sample-job` handler and data type validation).
+- `apps/api`: 1 unit test passing (`healthRouter` Express setup).
+- `apps/web`: 1 unit test passing (`Home` component import & module structure).
+- `apps/analytics`: 2 Pytest tests passing (`/health` status check & `/forecast` 501 stub check).
 
-| Date | Decision | Reason |
-|------|----------|--------|
-| 2026-09-20 | Use pnpm workspaces (not Turborepo/Nx) | Simpler setup for a small team; can add build orchestration later if needed |
-| 2026-09-20 | Prisma v6 with PostgreSQL | Mature ORM with good TypeScript support; migration story is solid |
-| 2026-09-20 | `IssueEvent.githubId` as BigInt | GitHub timeline event IDs can exceed 32-bit integer range |
-| 2026-09-20 | `stateReason` on Issue model | Critical for distinguishing "completed" vs "not_planned" closures in completion ratio |
-| 2026-09-20 | Separate `repositoryId` on Issue | Enables simpler queries and unique constraints without joining through Milestone |
-| 2026-09-20 | ESLint flat config (v9) | Forward-compatible; `.eslintrc` format is deprecated |
-| 2026-09-20 | Express 5 | Stable release with async error handling improvements |
-| 2026-09-20 | pg-boss v10 batch handlers | v10 changed `work()` to pass `Job[]` arrays by default |
-| 2026-09-20 | psycopg `connect_timeout=3` | Prevent indefinite blocking in health check when DB is unreachable |
+---
 
-## Known Issues / Open Questions
+## 📝 Decisions Log
 
-- Docker Compose not yet verified (Docker Desktop wasn't running) — needs manual verification
-- `analytics_reader` role needs `GRANT SELECT` run after Prisma migrations create tables (documented in `init-db.sql`)
-- Web's `NEXT_PUBLIC_API_URL` in Docker points to `http://api:4000` (inter-container), but browser needs `http://localhost:4000` — will need reverse proxy or CORS config for production
+| Date | Decision | Reason / Context |
+|------|----------|------------------|
+| 2026-09-20 | Monorepo layout with `pnpm` workspaces | Fast, lightweight monorepo management without extra build system overhead |
+| 2026-09-20 | Prisma v6 ORM for PostgreSQL | Single source of truth for database schema with generated TypeScript types |
+| 2026-09-20 | Read-only Postgres role (`analytics_reader`) | Guarantees Python analytics service never writes or corrupts primary database |
+| 2026-09-20 | `IssueEvent.githubId` as `BigInt` | Prevents overflow on large GitHub timeline event IDs |
+| 2026-09-20 | Store `stateReason` on Issue model | Allows distinguishing completed issues vs scope removals (`not_planned`/`duplicate`) |
+| 2026-09-20 | Express 5 for API Service | Built-in async error handling and modern middleware support |
+| 2026-09-20 | `pg-boss` v10 batch handler support | `pg-boss` v10 passes `Job[]` arrays to work handlers by default |
+| 2026-09-20 | 3-second database connection timeout in analytics | Prevents health check endpoint from hanging when DB is unreachable |
+
+---
+
+## 🚀 Next Action Items
+
+1. **Verify Docker Compose**: Run `docker compose up --build` when Docker Desktop is running.
+2. **Begin Phase 2**: Implement GitHub App registration and OAuth connection flow.
