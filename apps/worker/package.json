@@ -14,7 +14,7 @@
   "dependencies": {
     "@ppi/db": "workspace:*",
     "pg-boss": "^10.3.0",
-    "pino": "^9.6.0",
+    "pino": "^10.3.1",
     "pino-pretty": "^13.0.0",
     "zod": "^3.24.0"
   },
