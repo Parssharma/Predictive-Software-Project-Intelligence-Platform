@@ -4,8 +4,8 @@
 
 ## Last Updated
 
-- **Date:** 2026-09-20
-- **Branch:** `phase-1/foundation`
+- **Date:** 2026-09-22
+- **Branch:** `phase-2/github-app-connection`
 
 ---
 
@@ -15,7 +15,7 @@
 |-------|------------|--------|------------------------------|-------------------------|
 | **0** | **Definitions** | ✅ Done | Core definitions & formulas documented | [docs/DEFINITIONS.md](DEFINITIONS.md) |
 | **1** | **Foundation** | ✅ Done | Scaffold, Prisma, Docker, CI, Docs, /health | All lint/typecheck/tests pass |
-| **2** | **GitHub App & Connection** | ⬜ Not Started | User sign-in, app install, repo/milestone picker | Pending Phase 2 |
+| **2** | **GitHub App & Connection** | ✅ Done | User sign-in, app install, repo/milestone picker | Auth, connect, Octokit & UI tests pass |
 | **3** | **Ingestion** | ⬜ Not Started | GraphQL backfill, timeline events, idempotent upserts | Pending Phase 3 |
 | **4** | **Historical Reconstruction** | ⬜ Not Started | Milestone state reconstruction as of date X (no leakage) | Pending Phase 4 |
 | **5** | **Metrics & Baseline** | ⬜ Not Started | Weekly throughput, scope changes, completion ratio | Pending Phase 5 |
@@ -54,16 +54,22 @@
 - [x] Environment files (`.env.example` per service) & `.gitignore`
 - [x] Living documentation suite: `README.md`, `AGENTS.md`, `docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/IMPLEMENTATION_PLAN.md`, `docs/DEFINITIONS.md`, `docs/PROGRESS.md`
 
+### Phase 2: GitHub App & Connection (Completed 2026-09-22)
+- [x] Detailed GitHub App Registration Guide ([docs/GITHUB_APP_SETUP.md](GITHUB_APP_SETUP.md))
+- [x] GitHub OAuth sign-in flow (`GET /auth/github`, `POST /auth/github/callback`, `GET /auth/me`, `POST /auth/logout`)
+- [x] JWT session management with httpOnly cookies & Bearer fallback (`apps/api/src/lib/jwt.ts`, `apps/api/src/middleware/auth.ts`)
+- [x] Octokit integration for fetching installations, installation repos, and milestones (`apps/api/src/lib/github.ts`)
+- [x] Connection endpoints: `POST /connect` (saves Repo & Milestone selection) and `GET /connections` (`apps/api/src/routes/connect.ts`)
+- [x] GitHub App installation webhook handler with HMAC-SHA256 signature verification (`apps/api/src/routes/webhooks.ts`)
+- [x] Web API client with CORS credentials support (`apps/web/src/lib/api.ts`)
+- [x] Web OAuth callback page (`apps/web/src/app/auth/callback/page.tsx`)
+- [x] Web Connection Picker page with 2-step Repo & Milestone selection (`apps/web/src/app/connect/page.tsx`)
+- [x] Web landing page with Sign in with GitHub button (`apps/web/src/app/page.tsx`)
+- [x] Automated unit test suite for JWT authentication & connection payload Zod validation (`apps/api/tests/auth.test.ts`, `apps/api/tests/connect.test.ts`)
+
 ---
 
 ## 🛠️ What Needs to Be Built (Target Roadmap)
-
-### Phase 2: GitHub App & Connection
-- [ ] GitHub App manifest & registration guide
-- [ ] OAuth authentication flow for user sign-in
-- [ ] Installation webhook handler (`/webhooks/installation`)
-- [ ] Frontend Repo & Milestone picker page
-- [ ] API routes for repo/milestone connection
 
 ### Phase 3: Ingestion
 - [ ] Octokit GraphQL client for backfill
@@ -130,15 +136,15 @@
 ## 🔍 Verification Evidence
 
 ### 1. Code Quality & Formatting (✅ Pass)
-- `pnpm lint` — All Node workspaces clean (0 errors).
+- `pnpm lint` — All Node workspaces clean (`api`, `worker`, `web`, `db`).
 - `python -m ruff check app/ tests/` — All Python files clean (0 errors).
 
 ### 2. Static Type Checks (✅ Pass)
 - `pnpm typecheck` — TypeScript strict compilation passes for `@ppi/db`, `@ppi/api`, `@ppi/worker`, `@ppi/web`.
 
-### 3. Automated Test Suite (✅ Pass — 6 Tests)
+### 3. Automated Test Suite (✅ Pass — 8 Tests Total)
+- `apps/api`: 5 unit tests passing (`healthRouter`, `JWT sign/verify`, `connect schema validation`).
 - `apps/worker`: 2 unit tests passing (`sample-job` handler and data type validation).
-- `apps/api`: 1 unit test passing (`healthRouter` Express setup).
 - `apps/web`: 1 unit test passing (`Home` component import & module structure).
 - `apps/analytics`: 2 Pytest tests passing (`/health` status check & `/forecast` 501 stub check).
 
@@ -156,10 +162,11 @@
 | 2026-09-20 | Express 5 for API Service | Built-in async error handling and modern middleware support |
 | 2026-09-20 | `pg-boss` v10 batch handler support | `pg-boss` v10 passes `Job[]` arrays to work handlers by default |
 | 2026-09-20 | 3-second database connection timeout in analytics | Prevents health check endpoint from hanging when DB is unreachable |
+| 2026-09-22 | JWT sessions in httpOnly cookies + Bearer header support | Secure, cross-domain ready authentication between Next.js and Express API |
+| 2026-09-22 | Detect GitHub App installations via Octokit REST API | Ensures connection flow works seamlessly even in local dev without webhooks/tunnels |
 
 ---
 
 ## 🚀 Next Action Items
 
-1. **Verify Docker Compose**: Run `docker compose up --build` when Docker Desktop is running.
-2. **Begin Phase 2**: Implement GitHub App registration and OAuth connection flow.
+1. **Begin Phase 3**: Data Ingestion — GraphQL backfill engine for milestones, issues, events, PRs, and PR reviews.

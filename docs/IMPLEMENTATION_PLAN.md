@@ -6,7 +6,7 @@
 |-------|------|--------|-------------|
 | 0 | Definitions | ✅ Done | — |
 | 1 | Foundation | ✅ Done | Phase 0 |
-| 2 | GitHub App & Connection | ⬜ Not Started | Phase 1 |
+| 2 | GitHub App & Connection | ✅ Done | Phase 1 |
 | 3 | Ingestion | ⬜ Not Started | Phase 2 |
 | 4 | Historical Reconstruction | ⬜ Not Started | Phase 3 |
 | 5 | Metrics & Baseline | ⬜ Not Started | Phase 4 |
@@ -64,11 +64,13 @@
 **Done when:** A user can pick a repo and milestone and it is saved to the database.
 
 **Deliverables:**
-- GitHub App registration guide
-- OAuth sign-in flow
-- Installation webhook handler
-- Repo + milestone picker UI
-- API endpoints for connection flow
+- [x] GitHub App registration guide (`docs/GITHUB_APP_SETUP.md`)
+- [x] OAuth sign-in flow (`/auth/github`, `/auth/github/callback`, `/auth/me`, `/auth/logout`)
+- [x] Installation webhook handler (`/webhooks/github`)
+- [x] Repo + milestone picker UI (`apps/web/src/app/connect/page.tsx`)
+- [x] API endpoints for connection flow (`/github/installations`, `/github/repos/:owner/:repo/milestones`, `/connect`, `/connections`)
+
+**Status:** ✅ Done — All auth, connection, and GitHub API routes created with tests passing.
 
 ---
 
