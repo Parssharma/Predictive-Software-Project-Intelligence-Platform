@@ -11,7 +11,7 @@ jobs:
     name: Lint, Typecheck & Test (Node)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
@@ -42,7 +42,7 @@ jobs:
       run:
         working-directory: apps/analytics
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
